@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-container
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: user_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+  
+  user:
+    build: 
+        context: src/user
+    container_name: user
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+        - ./src/user/signature.pem:/tmp/signature.pem
+        - ./src/user/signature.pub:/tmp/signature.pub
+    environment:
+      ADMIN_CONNECTION: postgres://myuser:mypassword@postgres:5432/postgres
+      DATABASE_URL: postgres://myuser:mypassword@postgres:5432/user_database
+      DATABASE_NAME: user_database
+    command: ["--private", "/tmp/signature.pem", "--public", "/tmp/signature.pub", "--port", "8090"]
+    ports:
+        - 8090:8090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+  
+  api:
+    build:
+      context: src/api
+    container_name: api
+    depends_on:
+      user:
+        condition: service_healthy
+    command: ["-server", "http://user:8090", "-port", "8080"]
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: User Authentication API
+  description: API for user authentication, including registration, login, user information retrieval, and update.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8090
+paths:
+  /signup:
+    post:
+      summary: Sign up a new user
+      description: Registers a new user with login, password, and email.
+      operationId: signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: User's login.
+                password:
+                  type: string
+                  description: User's password.
+                mail:
+                  type: string
+                  description: User's email.
+      responses:
+        '200':
+          description: User registered successfully and JWT token returned.
+        '400':
+          description: Bad request, invalid input.
+        '403':
+          description: User already exists.
+        '500':
+          description: Internal server error.
+  
+  /login:
+    post:
+      summary: User login
+      description: Allows a user to log in with their credentials (login and password).
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: User's login (username).
+                password:
+                  type: string
+                  description: User's password.
+      responses:
+        '200':
+          description: Login successful and JWT token returned.
+        '400':
+          description: Bad request, invalid input.
+        '403':
+          description: Invalid credentials.
+        '500':
+          description: Internal server error.
+  
+  /update:
+    post:
+      summary: Update user information
+      description: Update user details like name, surname, date of birth, email, and phone number.
+      operationId: update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: User's first name.
+                surname:
+                  type: string
+                  description: User's last name.
+                date_of_birth:
+                  type: string
+                  format: date
+                  description: User's date of birth.
+                mail:
+                  type: string
+                  description: User's email address.
+                phone_number:
+                  type: string
+                  description: User's phone number.
+      responses:
+        '200':
+          description: User information updated successfully.
+        '400':
+          description: Bad request, invalid input.
+        '401':
+          description: Unauthorized, invalid or expired JWT token.
+        '500':
+          description: Internal server error.
+
+  /get:
+    get:
+      summary: Get user information
+      description: Retrieve details of the logged-in user.
+      operationId: getUser
+      responses:
+        '200':
+          description: User information retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  login:
+                    type: string
+                  name:
+                    type: string
+                  surname:
+                    type: string
+                  date_of_birth:
+                    type: string
+                  mail:
+                    type: string
+                  phone_number:
+                    type: string
+                  date_of_creation:
+                    type: string
+                    format: date-time
+                  date_of_last_change:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request, invalid or expired JWT token.
+        '401':
+          description: Unauthorized, user not authenticated.
+        '500':
+          description: Internal server error.
+
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  security:
+    - jwt: []

@@ -1,0 +1,5 @@
+# Ignore .perm files
+*.pem
+
+# Ignore .pub files
+*.pub
